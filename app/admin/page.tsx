@@ -21,18 +21,21 @@ export default function AdminPage() {
     const checkAdmin = () => {
       const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
       const loginTime = localStorage.getItem('adminLoginTime');
+      const rememberDays = localStorage.getItem('adminRememberDays');
       
       if (!isLoggedIn || !loginTime) {
         router.push('/');
         return;
       }
 
-      // 检查登录是否过期（24小时）
+      // 检查登录是否过期（根据记住密码设置）
       const now = Date.now();
       const login = parseInt(loginTime);
+      const days = rememberDays ? parseInt(rememberDays) : 1; // 默认1天（24小时）
       const hoursDiff = (now - login) / (1000 * 60 * 60);
+      const maxHours = days * 24;
       
-      if (hoursDiff > 24) {
+      if (hoursDiff > maxHours) {
         handleLogout();
         return;
       }
@@ -192,6 +195,7 @@ export default function AdminPage() {
   const handleLogout = () => {
     localStorage.removeItem('isAdminLoggedIn');
     localStorage.removeItem('adminLoginTime');
+    localStorage.removeItem('adminRememberDays');
     router.push('/');
   };
 

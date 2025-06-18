@@ -13,11 +13,12 @@ interface AdminLoginProps {
 export default function AdminLogin({ isOpen, onClose, onLogin, theme }: AdminLoginProps) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true); // 默认选中记住密码
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 简单的管理员密码（在实际项目中应该使用更安全的方式）
-  const ADMIN_PASSWORD = 'admin123';
+  // 管理员密码
+  const ADMIN_PASSWORD = 'zmxq';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,11 @@ export default function AdminLogin({ isOpen, onClose, onLogin, theme }: AdminLog
       // 登录成功，保存到localStorage
       localStorage.setItem('isAdminLoggedIn', 'true');
       localStorage.setItem('adminLoginTime', Date.now().toString());
+      
+      // 如果选择记住密码，设置90天有效期，否则24小时
+      const rememberDays = rememberMe ? 90 : 1;
+      localStorage.setItem('adminRememberDays', rememberDays.toString());
+      
       onLogin(true);
       onClose();
       setPassword('');
@@ -130,14 +136,31 @@ export default function AdminLogin({ isOpen, onClose, onLogin, theme }: AdminLog
             </div>
           </div>
 
+          {/* 记住密码选项 */}
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="rememberMe"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+            <label 
+              htmlFor="rememberMe" 
+              className={`ml-2 text-sm ${
+                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+              } cursor-pointer`}
+            >
+              记住密码 (90天)
+            </label>
+          </div>
+
           {/* 错误信息 */}
           {error && (
             <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
               {error}
             </div>
           )}
-
-
 
           {/* 登录按钮 */}
           <button

@@ -24,18 +24,22 @@ export default function Home() {
     const checkAdminLogin = () => {
       const isLoggedIn = localStorage.getItem('isAdminLoggedIn');
       const loginTime = localStorage.getItem('adminLoginTime');
+      const rememberDays = localStorage.getItem('adminRememberDays');
       
       if (isLoggedIn && loginTime) {
         const now = Date.now();
         const login = parseInt(loginTime);
+        const days = rememberDays ? parseInt(rememberDays) : 1; // 默认1天（24小时）
         const hoursDiff = (now - login) / (1000 * 60 * 60);
+        const maxHours = days * 24;
         
-        if (hoursDiff < 24) {
+        if (hoursDiff < maxHours) {
           setIsAdminLoggedIn(true);
         } else {
           // 登录过期，清除状态
           localStorage.removeItem('isAdminLoggedIn');
           localStorage.removeItem('adminLoginTime');
+          localStorage.removeItem('adminRememberDays');
           setIsAdminLoggedIn(false);
         }
       }
