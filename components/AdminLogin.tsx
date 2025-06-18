@@ -137,14 +137,7 @@ export default function AdminLogin({ isOpen, onClose, onLogin, theme }: AdminLog
             </div>
           )}
 
-          {/* 提示信息 */}
-          <div className={`p-3 rounded-lg text-xs ${
-            theme === 'dark' 
-              ? 'bg-gray-700 text-gray-300' 
-              : 'bg-gray-50 text-gray-600'
-          }`}>
-            💡 提示：默认密码是 <code className="font-mono bg-gray-200 dark:bg-gray-600 px-1 rounded">admin123</code>
-          </div>
+
 
           {/* 登录按钮 */}
           <button
