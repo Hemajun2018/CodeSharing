@@ -101,6 +101,7 @@ export default function Home() {
         // 转换数据格式为前端需要的格式
         const simplifiedCodes = (data.inviteCodes || []).map((code: InviteCode) => ({
           id: code.id,
+          categoryId: code.category_id,
           category: code.categories?.name || '未知分类',
           code: code.code,
           isUsed: code.is_used,

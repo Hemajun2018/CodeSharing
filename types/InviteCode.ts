@@ -18,6 +18,7 @@ export interface InviteCode {
 // 用于前端显示的简化类型
 export interface SimpleInviteCode {
   id: number;
+  categoryId: number;
   category: string;
   code: string;
   isUsed: boolean;
