@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check, Gift, Lock } from 'lucide-react';
 import { SimpleInviteCode } from '@/types/InviteCode';
+import { toast } from 'sonner';
 
 interface RetrieveSectionProps {
   categories: string[];
@@ -78,6 +79,12 @@ export default function RetrieveSection({ categories, inviteCodes, onUseInviteCo
       setCopiedId(codeToUse.id);
       onUseInviteCode(codeToUse.id);
       
+      // 显示成功提示
+      toast.success('🎉 已成功复制邀请码，快到平台粘贴使用吧！', {
+        description: `邀请码: ${codeToUse.code}`,
+        duration: 4000,
+      });
+      
       // 更新本地使用状态
       const categoryId = getCategoryId(category);
       if (categoryId) {
@@ -87,6 +94,10 @@ export default function RetrieveSection({ categories, inviteCodes, onUseInviteCo
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('复制失败:', err);
+      toast.error('😅 复制失败，请手动复制邀请码', {
+        description: `邀请码: ${codeToUse.code}`,
+        duration: 5000,
+      });
     }
   };
 
