@@ -423,7 +423,7 @@ export default function Home() {
                 <p className={`text-base sm:text-lg ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  选择分类，获取可用的邀请码
+                  选择平台，获取可用的邀请码
                 </p>
               </div>
               <RetrieveSection
@@ -441,7 +441,7 @@ export default function Home() {
                 <p className={`text-base sm:text-lg ${
                   theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                 }`}>
-                  选择分类，添加您的邀请码
+                  选择平台，添加您的邀请码
                 </p>
               </div>
               <UploadSection

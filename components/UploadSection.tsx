@@ -155,7 +155,7 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
           <label className={`block text-sm font-medium mb-3 ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
           }`}>
-            选择分类
+            选择平台
           </label>
           <div className="relative">
             <button
@@ -403,7 +403,7 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
             {uploadStatus === 'idle' && <Sparkles className="w-5 h-5" />}
             
                           <span>
-                {uploadStatus === 'extracting' && '🤖 AI正在提取邀请码...'}
+                {uploadStatus === 'extracting' && '🤖 正在提取邀请码...'}
                 {uploadStatus === 'uploading' && '📤 正在分享...'}
                 {uploadStatus === 'success' && `🎉 分享成功！感谢您分享 ${sharedCodesCount} 个邀请码`}
                 {uploadStatus === 'error' && '❌ 分享失败'}
