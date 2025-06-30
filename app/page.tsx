@@ -295,7 +295,7 @@ export default function Home() {
               <img 
                 src="/logo.png" 
                 alt="CodeSharing Logo" 
-                className="w-8 h-8 sm:w-10 sm:h-10"
+                className="w-10 h-10 sm:w-16 sm:h-16"
               />
               <h1 className="text-lg sm:text-xl font-bold tracking-tight">CodeSharing</h1>
             </button>

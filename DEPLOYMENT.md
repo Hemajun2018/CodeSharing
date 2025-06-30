@@ -34,6 +34,7 @@ git push origin main
 4. 在环境变量设置中添加：
    - `NEXT_PUBLIC_SUPABASE_URL`: 你的 Supabase 项目 URL
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: 你的 Supabase anon key
+   - `SILICONFLOW_API_KEY`: 你的硅基流动API密钥（用于AI提取邀请码功能）
 5. 点击 "Deploy"
 
 ### 3. 本地开发环境设置
@@ -43,7 +44,28 @@ git push origin main
 ```env
 NEXT_PUBLIC_SUPABASE_URL=你的_supabase_项目_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=你的_supabase_anon_key
+SILICONFLOW_API_KEY=你的_硅基流动_api_密钥
 ```
+
+## 🤖 AI功能配置
+
+### 硅基流动API
+
+本项目使用硅基流动的DeepSeek V3模型来实现AI智能提取邀请码功能。
+
+#### 获取API密钥
+
+1. 访问 [硅基流动官网](https://siliconflow.cn/)
+2. 注册并登录账户
+3. 在控制台中创建API密钥
+4. 复制生成的API密钥（格式：`sk-xxxxx`）
+
+#### API使用说明
+
+- **模型**: `deepseek-ai/DeepSeek-V3`
+- **功能**: 从混乱文本中智能提取邀请码
+- **计费**: 按token使用量计费
+- **限制**: 请合理使用，避免频繁调用
 
 ## 🔧 功能特性
 
@@ -51,6 +73,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=你的_supabase_anon_key
 
 - 📦 **分类管理**: 动态添加新分类
 - 📤 **邀请码上传**: 批量上传邀请码（自动分割）
+- 🤖 **AI智能提取**: 使用DeepSeek模型自动从混乱文本中提取邀请码
 - 📥 **邀请码获取**: 一键获取并复制邀请码
 - 🌙 **主题切换**: 深色/浅色模式
 - 📱 **响应式设计**: 适配移动端和桌面端
@@ -102,6 +125,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=你的_supabase_anon_key
 3. **部署失败**
    - 检查 build 日志
    - 确保所有依赖已正确安装
+
+4. **AI提取功能无法使用**
+   - 确保 `SILICONFLOW_API_KEY` 环境变量已正确设置
+   - 检查硅基流动API密钥是否有效
+   - 确认账户余额是否充足
+   - 查看浏览器网络请求是否返回错误
 
 ### 支持联系
 

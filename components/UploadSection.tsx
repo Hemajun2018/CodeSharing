@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { ChevronDown, Upload, Check, AlertCircle, Plus } from 'lucide-react';
+import { ChevronDown, Check, AlertCircle, Plus, Sparkles } from 'lucide-react';
 
 interface UploadSectionProps {
   categories: string[];
@@ -10,11 +10,13 @@ interface UploadSectionProps {
   theme: 'light' | 'dark';
 }
 
-type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+type UploadStatus = 'idle' | 'extracting' | 'extracted' | 'uploading' | 'success' | 'error';
 
 export default function UploadSection({ categories, onAddInviteCode, onAddCategory, theme }: UploadSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [inviteCodes, setInviteCodes] = useState('');
+  const [extractedCodes, setExtractedCodes] = useState('');
+  const [sharedCodesCount, setSharedCodesCount] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<UploadStatus>('idle');
   const [showAddCategory, setShowAddCategory] = useState(false);
@@ -26,21 +28,51 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
     e.preventDefault();
     if (!selectedCategory || !inviteCodes.trim()) return;
 
+    try {
+      // 第一步：AI提取邀请码
+      setUploadStatus('extracting');
+      
+      const extractResponse = await fetch('/api/extract-codes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: inviteCodes }),
+      });
+
+      const extractData = await extractResponse.json();
+
+      if (!extractResponse.ok) {
+        throw new Error(extractData.error || 'AI提取失败');
+      }
+
+      // 显示提取结果让用户确认
+      setExtractedCodes(extractData.extractedCodes);
+      setUploadStatus('extracted');
+
+    } catch (error) {
+      console.error('AI提取失败:', error);
+      setUploadStatus('error');
+      setTimeout(() => setUploadStatus('idle'), 3000);
+    }
+  };
+
+  const handleConfirmExtracted = async () => {
     setUploadStatus('uploading');
 
-    // 模拟上传延迟
-    await new Promise(resolve => setTimeout(resolve, 800));
-
     try {
-      const codes = inviteCodes
+      const codes = extractedCodes
         .split('\n')
         .map(code => code.trim())
         .filter(code => code.length > 0);
 
       if (codes.length === 0) {
-        throw new Error('请输入有效的邀请码');
+        throw new Error('没有找到有效的邀请码');
       }
 
+      // 保存分享的邀请码数量
+      setSharedCodesCount(codes.length);
+      
       onAddInviteCode(selectedCategory, codes);
       setUploadStatus('success');
       
@@ -48,13 +80,20 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
       setTimeout(() => {
         setSelectedCategory('');
         setInviteCodes('');
+        setExtractedCodes('');
+        setSharedCodesCount(0);
         setUploadStatus('idle');
-      }, 1200);
+      }, 3000);
 
     } catch (error) {
       setUploadStatus('error');
       setTimeout(() => setUploadStatus('idle'), 2000);
     }
+  };
+
+  const handleReEdit = () => {
+    setUploadStatus('idle');
+    setExtractedCodes('');
   };
 
   const handleAddCategory = async () => {
@@ -101,6 +140,8 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
       setIsAddingCategory(false);
     }
   };
+
+
 
   return (
     <div className={`rounded-2xl p-8 transition-all duration-300 ${
@@ -253,51 +294,123 @@ export default function UploadSection({ categories, onAddInviteCode, onAddCatego
           <label className={`block text-sm font-medium mb-3 ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
           }`}>
-            邀请码（每行一个）
+            邀请码内容
           </label>
-          <textarea
-            value={inviteCodes}
-            onChange={(e) => setInviteCodes(e.target.value)}
-            rows={6}
-            placeholder="请输入邀请码，每行一个..."
-            className={`w-full p-4 rounded-xl resize-none transition-all duration-200 ${
-              theme === 'dark'
-                ? 'bg-gray-700 border border-gray-600 focus:border-blue-500 text-white placeholder-gray-400'
-                : 'bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 placeholder-gray-500'
-            } focus:outline-none`}
-          />
+          
+          {uploadStatus === 'extracted' ? (
+            // 显示AI提取结果
+            <div className="space-y-4">
+              <div className={`p-4 rounded-xl border-2 ${
+                theme === 'dark' 
+                  ? 'bg-green-900/20 border-green-700' 
+                  : 'bg-green-50 border-green-200'
+              }`}>
+                                 <div className="flex items-center space-x-2 mb-3">
+                   <Sparkles className={`w-4 h-4 ${
+                     theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                   }`} />
+                   <span className={`text-sm font-medium ${
+                     theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                   }`}>
+                     AI已提取以下 {extractedCodes.split('\n').filter(code => code.trim().length > 0).length} 个邀请码：
+                   </span>
+                 </div>
+                                 <div className={`p-3 rounded-lg font-mono text-sm ${
+                   theme === 'dark'
+                     ? 'bg-gray-800 text-gray-300 border border-gray-600'
+                     : 'bg-white text-gray-700 border border-gray-200'
+                 }`}>
+                   {extractedCodes.split('\n').map((code, index) => (
+                     <div key={index} className="py-0.5">
+                       {code.trim()}
+                     </div>
+                   ))}
+                 </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  type="button"
+                  onClick={handleConfirmExtracted}
+                  className={`flex-1 h-11 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    theme === 'dark'
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                  }`}
+                >
+                  <Check className="w-5 h-5" />
+                  <span>确认分享</span>
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={handleReEdit}
+                  className={`px-6 h-11 rounded-xl font-medium transition-all duration-200 ${
+                    theme === 'dark'
+                      ? 'bg-gray-600 hover:bg-gray-500 text-white'
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  重新编辑
+                </button>
+              </div>
+            </div>
+          ) : (
+            // 正常输入状态
+            <textarea
+              value={inviteCodes}
+              onChange={(e) => setInviteCodes(e.target.value)}
+              rows={6}
+              placeholder="请输入邀请码内容，可以是规范的邀请码（每行一个），也可以直接粘贴包含邀请码的文本，AI会自动提取..."
+              className={`w-full p-4 rounded-xl resize-none transition-all duration-200 ${
+                theme === 'dark'
+                  ? 'bg-gray-700 border border-gray-600 focus:border-blue-500 text-white placeholder-gray-400'
+                  : 'bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 placeholder-gray-500'
+              } focus:outline-none`}
+            />
+          )}
         </div>
 
         {/* 提交按钮 */}
-        <button
-          type="submit"
-          disabled={!selectedCategory || !inviteCodes.trim() || uploadStatus === 'uploading'}
-          className={`w-full h-11 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
-            uploadStatus === 'success'
-              ? 'bg-green-500 text-white'
-              : uploadStatus === 'error'
-              ? 'bg-red-500 text-white animate-pulse'
-              : selectedCategory && inviteCodes.trim()
-              ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-[0.98] active:scale-95'
-              : theme === 'dark'
-              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-          }`}
-        >
-          {uploadStatus === 'uploading' && (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          )}
-          {uploadStatus === 'success' && <Check className="w-5 h-5" />}
-          {uploadStatus === 'error' && <AlertCircle className="w-5 h-5" />}
-          {uploadStatus === 'idle' && <Upload className="w-5 h-5" />}
-          
-          <span>
-            {uploadStatus === 'uploading' && '上传中...'}
-            {uploadStatus === 'success' && '上传成功'}
-            {uploadStatus === 'error' && '上传失败'}
-            {uploadStatus === 'idle' && '分享邀请码'}
-          </span>
-        </button>
+        {uploadStatus !== 'extracted' && (
+          <button
+            type="submit"
+            disabled={!selectedCategory || !inviteCodes.trim() || uploadStatus === 'extracting' || uploadStatus === 'uploading'}
+            className={`w-full h-11 rounded-xl font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+              uploadStatus === 'success'
+                ? 'bg-green-500 text-white'
+                : uploadStatus === 'error'
+                ? 'bg-red-500 text-white animate-pulse'
+                : uploadStatus === 'extracting'
+                ? 'bg-purple-500 text-white cursor-not-allowed'
+                : uploadStatus === 'uploading'
+                ? 'bg-blue-500 text-white cursor-not-allowed'
+                : selectedCategory && inviteCodes.trim()
+                ? 'bg-blue-500 hover:bg-blue-600 text-white hover:scale-[0.98] active:scale-95'
+                : theme === 'dark'
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            {uploadStatus === 'extracting' && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            )}
+            {uploadStatus === 'uploading' && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            )}
+            {uploadStatus === 'success' && <Check className="w-5 h-5" />}
+            {uploadStatus === 'error' && <AlertCircle className="w-5 h-5" />}
+            {uploadStatus === 'idle' && <Sparkles className="w-5 h-5" />}
+            
+                          <span>
+                {uploadStatus === 'extracting' && '🤖 AI正在提取邀请码...'}
+                {uploadStatus === 'uploading' && '📤 正在分享...'}
+                {uploadStatus === 'success' && `🎉 分享成功！感谢您分享 ${sharedCodesCount} 个邀请码`}
+                {uploadStatus === 'error' && '❌ 分享失败'}
+                {uploadStatus === 'idle' && ' 分享邀请码'}
+              </span>
+          </button>
+        )}
       </form>
     </div>
   );
